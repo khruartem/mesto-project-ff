@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // подключение плагина
 
 module.exports = {
   entry: { main: './src/index.js' },
@@ -25,8 +26,13 @@ module.exports = {
         // исключает папку node_modules, файлы в ней обрабатывать не нужно
         exclude: '/node_modules/'
       }
-      ]
-  }
+    ]
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './src/index.html' // путь к файлу index.html
+    }),
+  ]
 }
 
 // module.exports — это синтаксис экспорта в Node.js
