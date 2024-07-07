@@ -1,4 +1,4 @@
-// теперь картинки можно импортировать,
+/* / теперь картинки можно импортировать,
 // вебпак добавит в переменные правильные пути
 import avatarImage from '../images/avatar.jpg';
 import logoImage from '../images/logo.svg';
@@ -7,9 +7,11 @@ const images = [
   // меняем исходные пути на переменные
   { name: 'Avatar image', link: avatarImage },
   { name: 'Logo image', link: logoImage },
-];
+]; */
 
 import '../pages/index.css'; // добавьте импорт главного файла стилей
+
+import initialCards from '../src/cards.js';
 
 // @todo: Темплейт карточки
 const cardTemplate = document.querySelector('#card-template').content;
