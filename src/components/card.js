@@ -1,21 +1,27 @@
-import { cardTemplate } from '../components/index.js';
-import { popupPlace } from '../components/index.js';
-
 // @todo: Функция создания карточки
-function createCard(cardName, cardLink, callback1, callback2, callback3) {
+function createCard(cardName, cardLink, deleteCard, likeCard, openCard) {
+  const cardTemplate = document.querySelector('#card-template').content;
   const cardElement = cardTemplate.querySelector('.card').cloneNode(true);
   const cardImage = cardElement.querySelector('.card__image');
   const cardTitle = cardElement.querySelector('.card__title');
   const deleteButton = cardElement.querySelector('.card__delete-button');
   const likeButton = cardElement.querySelector('.card__like-button');
+  const cardOpened = document.querySelector('.popup_type_image');
+  const cardOpenedImg = cardOpened.querySelector('.popup__image');
+  const cardOpenedCaption = cardOpened.querySelector('.popup__caption');
   
   cardTitle.textContent = cardName;
   cardImage.src = cardLink;
   cardImage.alt = cardName;
 
-  deleteButton.addEventListener('click', callback1);
-  likeButton.addEventListener('click', callback2);
-  cardImage.addEventListener('click', (evt) => callback3(popupPlace, evt));
+  deleteButton.addEventListener('click', deleteCard);
+  likeButton.addEventListener('click', likeCard);
+  cardImage.addEventListener('click', () => {
+    cardOpenedImg.src = cardLink;
+    cardOpenedImg.alt = cardName;
+    cardOpenedCaption.textContent = cardName;
+    openCard(cardOpened)
+  });
 
   return cardElement;
 }

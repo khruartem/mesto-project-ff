@@ -1,23 +1,5 @@
-import { popupEdit } from '../components/index.js';
-import { popupPlace } from '../components/index.js';
-
 // @todo: Функция открытия попапа
-function openPopup(popup, evt) {    
-  if (evt.target.classList.contains('profile__edit-button')) {
-    const form = popupEdit.querySelector('.popup__form');
-    const name = form.elements.name;
-    const job = form.elements.description;
-
-    name.value = document.querySelector('.profile__title').textContent;
-    job.value = document.querySelector('.profile__description').textContent;
-  } else if (evt.target.classList.contains('card__image')) {
-    const placeImg = popupPlace.querySelector('.popup__image');
-    const placeCaption = popupPlace.querySelector('.popup__caption');
-
-    placeImg.src = evt.target.src;
-    placeCaption.textContent = evt.target.alt;
-  }
-
+function openPopup(popup) {    
   popup.classList.add('popup_is-opened');
 
   popup.addEventListener('click', closePopup);
