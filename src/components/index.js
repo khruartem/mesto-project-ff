@@ -2,7 +2,7 @@
 import '../pages/index.css';
 import initialCards from '../components/cards.js';
 import { createCard, deleteCard, cardLike } from '../components/card.js';
-import { openPopup, closePopup, makePopupAnimated } from '../components/modal.js';
+import { openPopup, closePopup, makePopupAnimated } from '../components/popup.js';
 
 // @todo: DOM узлы карточек
 const cardElements = document.querySelector('.places__list');
