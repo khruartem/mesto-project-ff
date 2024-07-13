@@ -1,6 +1,6 @@
 // @todo: Функция создания карточки
 function createCard(cardName, cardLink, deleteCard, likeCard, openCard) {
-  const cardTemplate = document.querySelector('#card-template').content;
+  const cardTemplate = document.getElementById('card-template').content;
   const cardElement = cardTemplate.querySelector('.card').cloneNode(true);
   const cardImage = cardElement.querySelector('.card__image');
   const cardTitle = cardElement.querySelector('.card__title');
@@ -20,7 +20,7 @@ function createCard(cardName, cardLink, deleteCard, likeCard, openCard) {
     cardOpenedImg.src = cardLink;
     cardOpenedImg.alt = cardName;
     cardOpenedCaption.textContent = cardName;
-    openCard(cardOpened)
+    openCard(cardOpened);
   });
 
   return cardElement;
