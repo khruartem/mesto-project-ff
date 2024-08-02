@@ -70,7 +70,9 @@ const deleteNewCard = (cardId) => {
     headers: config.headers
   })
     .then(res => {
-      if (!res.ok) {
+      if (res.ok) {
+        return Promise.resolve();
+      } else {
         return Promise.reject(`Ошибка: ${res.status}`);
       }
     })

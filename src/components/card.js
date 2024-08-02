@@ -24,14 +24,27 @@ function createCard(cardAttributesObject) {
   } else {
     likes.textContent = cardAttributesObject.likesArray.length;
   }
+  // Установка id карточки
+  cardElement.id = cardAttributesObject.cardId;
 
 
   // Повесить слушателей клика на кнопку удаления карточки
   if (cardAttributesObject.cardOwnerId === cardAttributesObject.profileId) {
     deleteButton.classList.remove('card__delete-button_hidden');
-    deleteButton.addEventListener('click', evt => {
-      cardAttributesObject.deleteFromServer(cardAttributesObject.cardId);
-      cardAttributesObject.deleteFromMarkup(evt);
+    deleteButton.addEventListener('click', () => {
+      // Ищем зону контента попапа:
+      const popupContentZone = cardAttributesObject.popupDelete.querySelector(cardAttributesObject.hideConfigObject.popupContenSelector);
+      
+      cardAttributesObject.openFunction(cardAttributesObject.popupDelete);
+      cardAttributesObject.formDelete.dataset.cardId = `${cardAttributesObject.cardId}`;
+      if (cardAttributesObject.formDelete.classList.contains(cardAttributesObject.hideConfigObject.formHiddenClass)) {
+        cardAttributesObject.hideFormError(cardAttributesObject.formDelete, cardAttributesObject.hideConfigObject);
+        cardAttributesObject.changeButtonLabel(cardAttributesObject.formDelete, 'Да');
+        cardAttributesObject.clearValidation(cardAttributesObject.formDelete, cardAttributesObject.validationConfig);
+      } else {
+        cardAttributesObject.clearValidation(cardAttributesObject.formDelete, cardAttributesObject.validationConfig);
+      }
+      popupContentZone.classList.add(cardAttributesObject.hideConfigObject.popupContenFitClass);
     });
   } else {
     deleteButton.classList.add('card__delete-button_hidden');
@@ -67,7 +80,7 @@ function createCard(cardAttributesObject) {
 
 // Функция удаления карточки
 function deleteCard(evt) {
-  evt.target.closest('.card').remove();
+  evt.remove();
 }
 
 // Функция лайка карточки

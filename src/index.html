@@ -37,7 +37,7 @@
     <div class="popup__content">
       <button type="button" class="popup__close"></button>
       <h3 class="popup__title">Редактировать профиль</h3>
-      <form class="popup__form" name="edit-profile" novalidate>
+      <form id="edit-profile" class="popup__form" name="edit-profile" novalidate>
         <input 
           type="text"
           name="name"
@@ -58,6 +58,7 @@
           minlength="2"
           maxlength="200">
         <span class="popup__error description-error"></span>
+        <span class="popup__error edit-profile-error"></span>
         <button type="submit" class="button popup__button">Сохранить</button>
       </form>
     </div>
@@ -66,7 +67,7 @@
     <div class="popup__content">
       <button type="button" class="popup__close"></button>
       <h3 class="popup__title">Новое место</h3>
-      <form class="popup__form" name="new-place" novalidate>
+      <form id="new-place" class="popup__form" name="new-place" novalidate>
         <input 
           type="text"
           name="place-name"
@@ -85,6 +86,7 @@
           placeholder="Ссылка на картинку"
           required>
         <span class="popup__error link-error"></span>
+        <span class="popup__error new-place-error"></span>
         <button type="submit" class="button popup__button">Сохранить</button>
       </form>
     </div>
@@ -100,7 +102,7 @@
     <div class="popup__content">
       <button type="button" class="popup__close"></button>
       <h3 class="popup__title">Обновить аватар</h3>
-      <form class="popup__form" name="avatar" novalidate>
+      <form id="avatar-form" class="popup__form" name="avatar" novalidate>
         <input
           type="url"
           name="avatar"
@@ -108,7 +110,18 @@
           placeholder="Ссылка на аватар"
           required>
         <span class="popup__error avatar-error"></span>
+        <span class="popup__error avatar-form-error"></span>
         <button type="submit" class="button popup__button">Сохранить</button>
+      </form>
+    </div>
+  </div>
+  <div class="popup popup_type_delete">
+    <div class="popup__content popup__content_fit">
+      <button type="button" class="popup__close"></button>
+      <h3 class="popup__title">Вы уверены?</h3>
+      <form id="delete-form" class="popup__form" data-card-id="">
+        <span class="popup__error delete-form-error"></span>
+        <button type="submit" class="button popup__button">Да</button>
       </form>
     </div>
   </div>
