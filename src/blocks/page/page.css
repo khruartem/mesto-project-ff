@@ -1,5 +1,7 @@
 @import url('./__content/page__content.css');
 @import url('./__section/page__section.css');
+@import url('./__spinner/page__spinner.css');
+@import url('./__spinner/_center/page__spinner_center.css');
 
 .page {
   background: #000;

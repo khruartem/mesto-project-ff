@@ -1,5 +1,5 @@
-// @todo: Функция создания карточки
-function createCard(cardName, cardLink, deleteCard, likeCard, openCard) {
+// Функция создания карточки
+function createCard(cardAttributesObject) {
   const cardTemplate = document.getElementById('card-template').content;
   const cardElement = cardTemplate.querySelector('.card').cloneNode(true);
   const cardImage = cardElement.querySelector('.card__image');
@@ -9,31 +9,71 @@ function createCard(cardName, cardLink, deleteCard, likeCard, openCard) {
   const cardOpened = document.querySelector('.popup_type_image');
   const cardOpenedImg = cardOpened.querySelector('.popup__image');
   const cardOpenedCaption = cardOpened.querySelector('.popup__caption');
+  const likes = cardElement.querySelector('.card__like-count');
   
-  cardTitle.textContent = cardName;
-  cardImage.src = cardLink;
-  cardImage.alt = cardName;
+  // Устанока имени, картинки, состояние лайка и кол-ва лайков карточки
+  cardTitle.textContent = cardAttributesObject.cardName;
+  // Установка картинки карточки
+  cardImage.src = cardAttributesObject.cardLink;
+  cardImage.alt = cardAttributesObject.cardName;
+  // Устанока состояние лайка и кол-ва лайков карточки
+  if (cardAttributesObject.likesArray.find(element => {
+    return element['_id'] === cardAttributesObject.profileId;
+  })) {
+    cardAttributesObject.togglelikeInMarkup(likeButton, likes, cardAttributesObject.likesArray.length);
+  } else {
+    likes.textContent = cardAttributesObject.likesArray.length;
+  }
 
-  deleteButton.addEventListener('click', deleteCard);
-  likeButton.addEventListener('click', likeCard);
+
+  // Повесить слушателей клика на кнопку удаления карточки
+  if (cardAttributesObject.cardOwnerId === cardAttributesObject.profileId) {
+    deleteButton.classList.remove('card__delete-button_hidden');
+    deleteButton.addEventListener('click', evt => {
+      cardAttributesObject.deleteFromServer(cardAttributesObject.cardId);
+      cardAttributesObject.deleteFromMarkup(evt);
+    });
+  } else {
+    deleteButton.classList.add('card__delete-button_hidden');
+  }
+  
+  // Повесить слушателей клика на кнопку лайка
+  likeButton.addEventListener('click', evt => {
+    if (evt.target.classList.contains('card__like-button_is-active')) {
+      cardAttributesObject.deleteLikeFromServer(cardAttributesObject.cardId)
+        .then(res => {
+          cardAttributesObject.togglelikeInMarkup(likeButton, likes, res.likes.length);
+        })
+        .catch(err => console.log(err))
+    } else {
+      cardAttributesObject.putLikeOnServer(cardAttributesObject.cardId)
+        .then(res => {
+          cardAttributesObject.togglelikeInMarkup(likeButton, likes, res.likes.length);
+        })
+        .catch(err => console.log(err))
+    }
+  });
+
+  // Повесить слушателей клика на картинку карточки
   cardImage.addEventListener('click', () => {
-    cardOpenedImg.src = cardLink;
-    cardOpenedImg.alt = cardName;
-    cardOpenedCaption.textContent = cardName;
-    openCard(cardOpened);
+    cardOpenedImg.src = cardAttributesObject.cardLink;
+    cardOpenedImg.alt = cardAttributesObject.cardName;
+    cardOpenedCaption.textContent = cardAttributesObject.cardName;
+    cardAttributesObject.openFunction(cardOpened);
   });
 
   return cardElement;
 }
 
-// @todo: Функция удаления карточки
+// Функция удаления карточки
 function deleteCard(evt) {
   evt.target.closest('.card').remove();
 }
 
-//@todo: Функция лайка карточки
-function cardLike(evt) {
-  evt.target.classList.toggle('card__like-button_is-active');
+// Функция лайка карточки
+function cardLike(likeButton, likesCountElement, likesCount) {
+  likesCountElement.textContent = likesCount;
+  likeButton.classList.toggle('card__like-button_is-active');
 }
 
 export { createCard, deleteCard, cardLike };

@@ -10,9 +10,9 @@
   margin-bottom: 10px;
 }
 
-.popup__input:last-of-type {
+/*.popup__input:last-of-type {
   margin-bottom: 0;
-}
+} */
 
 @media screen and (max-width: 568px) {
   .popup__title {
