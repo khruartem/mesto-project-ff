@@ -1,5 +1,5 @@
 // Функция создания карточки
-function createCard(profileId, cardAttributesObject, cardFunctionsObject, cardHandlersObject) {
+function createCard(profileId, cardObject, cardFunctionsObject, cardHandlersObject) {
   const cardTemplate = document.getElementById('card-template').content;
   const cardElement = cardTemplate.querySelector('.card').cloneNode(true);
   const cardImage = cardElement.querySelector('.card__image');
@@ -9,40 +9,43 @@ function createCard(profileId, cardAttributesObject, cardFunctionsObject, cardHa
   const likes = cardElement.querySelector('.card__like-count');
 
   // Устанока имени, картинки, состояние лайка и кол-ва лайков карточки
-  cardTitle.textContent = cardAttributesObject.cardName;
+  cardTitle.textContent = cardObject.name;
   // Установка картинки карточки
-  cardImage.src = cardAttributesObject.cardLink;
-  cardImage.alt = cardAttributesObject.cardName;
+  cardImage.src = cardObject.link;
+  cardImage.alt = cardObject.name;
   // Устанока состояние лайка и кол-ва лайков карточки
-  if (cardAttributesObject.likesArray.find(element => {
+  if (cardObject.likes.find(element => {
     return element['_id'] === profileId;
   })) {
-    cardFunctionsObject.toggleLikeInMarkup(likeButton, likes, cardAttributesObject.likesArray.length);
+    cardFunctionsObject.toggleLikeInMarkup(likeButton, likes, cardObject.likes.length);
   } else {
-    likes.textContent = cardAttributesObject.likesArray.length;
+    likes.textContent = cardObject.likes.length;
   }
   // Установка id карточки
-  cardElement.id = cardAttributesObject.cardId;
+  cardElement.id = cardObject['_id'];
 
 
   // Повесить слушателей клика на кнопку удаления карточки
-  if (cardAttributesObject.cardOwnerId === profileId) {
+  if (cardObject.owner['_id'] === profileId) {
     deleteButton.classList.remove('card__delete-button_hidden');
     deleteButton.addEventListener('click', () => {
-      cardHandlersObject.handleCardDeleteClick(cardAttributesObject.cardId)
+      cardHandlersObject.handleCardDeleteClick(cardObject['_id'])
     });
   } else {
     deleteButton.classList.add('card__delete-button_hidden');
   }
 
-  // Повесить слушателей клика на кнопку лайка +
+  // Повесить слушателей клика на кнопку лайка
   likeButton.addEventListener('click', evt => {
-    cardHandlersObject.handleCardLikeClick(evt, cardAttributesObject.cardId, cardFunctionsObject.toggleLikeInMarkup, likeButton, likes)
+    cardHandlersObject.handleCardLikeClick(
+      evt,
+      cardObject['_id'], cardFunctionsObject.toggleLikeInMarkup,
+      likeButton, 'card__like-button_is-active', likes)
   });
 
   // Повесить слушателей клика на картинку карточки
   cardImage.addEventListener('click', () => {
-    cardHandlersObject.handleCardImageClick(cardAttributesObject.cardName, cardAttributesObject.cardLink)
+    cardHandlersObject.handleCardImageClick(cardObject.name, cardObject.link)
   });
 
   return cardElement;

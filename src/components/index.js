@@ -67,10 +67,7 @@ function getProfileAndCards() {
   const promises = [getProfileData(), getInitialCards()];
 
   Promise.all(promises)
-    .then((results) => {
-      const profileData = results[0];
-      const cards = results[1];
-
+    .then(([profileData, cards]) => {
       renderLoading(content, spinner, true);
 
       // Выводим полученные данные пользователя
@@ -83,13 +80,7 @@ function getProfileAndCards() {
       cards.forEach((card) => {
         cardElements.append(createCard(
           profileId,
-          {
-            cardOwnerId: card.owner['_id'],
-            cardId: card['_id'],
-            cardName: card.name,
-            cardLink: card.link,
-            likesArray: card.likes
-          },
+          card,
           {
             deleteFromMarkup: deleteCard,
             toggleLikeInMarkup: cardLike
@@ -143,16 +134,10 @@ function handleFormNewSubmit(evt) {
   } else {
     changeButtonLabel(evt.target, 'Сохранение...');
     addNewCard(placeInput.value, linkInput.value)
-      .then(newCardData => {
+      .then(newCard => {
         cardElements.prepend(createCard(
           profileId,
-          {
-            cardOwnerId: newCardData.owner['_id'],
-            cardId: newCardData['_id'],
-            cardName: newCardData.name,
-            cardLink: newCardData.link,
-            likesArray: newCardData.likes
-          },
+          newCard,
           {
             deleteFromMarkup: deleteCard,
             toggleLikeInMarkup: cardLike
@@ -288,12 +273,12 @@ function handleCardDeleteClick(cardId) {
 }
 
 // Обработчик клика на кнопку лайка карточки
-function handleCardLikeClick(evt, cardId, toggleLikeInMarkup, likeButton, likesElement) {
+function handleCardLikeClick(evt, cardId, toggleLikeInMarkup, likeButton, likeButtonActiveClass, likesElement) {
   formError.dataset.cardId = `${cardId}`;
   hideFormError(formError, formDisplayConfig);
   changeButtonLabel(formError, 'OK');
 
-  if (evt.target.classList.contains('card__like-button_is-active')) {
+  if (evt.target.classList.contains(likeButtonActiveClass)) {
     formError.dataset.actionType = 'delete-like';
     deleteLike(cardId)
       .then(res => {
