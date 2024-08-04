@@ -2,10 +2,10 @@
 import '../pages/index.css';
 import { createCard, deleteCard, cardLike } from '../components/card.js';
 import { openPopup, closePopup, makePopupAnimated } from '../components/popup.js';
-import { enableValidation, clearValidation, showFormError, hideFormError } from '../components/validation.js';
+import { enableValidation, clearValidation } from '../components/validation.js';
 import { getProfileData, getInitialCards, editProfileData, addNewCard, deleteNewCard, putLike, deleteLike, checkImgByUrl, editAvatar } from '../components/api.js';
 import { renderLoading } from '../components/spinner.js';
-import { changeButtonLabel } from '../components/form.js';
+import { changeButtonLabel, showFormError, hideFormError } from '../components/form.js';
 
 
 // DOM узлы страницы 
@@ -18,6 +18,7 @@ const popupNew = document.querySelector('.popup_type_new-card');
 const formNew = document.forms['new-place'];
 const placeInput = formNew.elements['place-name'];
 const linkInput = formNew.elements.link;
+const popupImage = document.querySelector('.popup_type_image');
 
 // DOM узлы для профиля
 const popupEdit = document.querySelector('.popup_type_edit');
@@ -39,63 +40,75 @@ let profileId = undefined;
 const popups = document.querySelectorAll('.popup');
 const popupDelete = document.querySelector('.popup_type_delete');
 const formDelete = document.getElementById('delete-form');
+const popupError = document.querySelector('.popup_type_error');
+const formError = document.getElementById('error-form');
 
-// Получить данные с сервера
-const promises = [getProfileData(), getInitialCards()];
+// Объекты настроек
+// Настройки для отображения ошибок на форме
+const formDisplayConfig = {
+  formHiddenClass: 'popup__form_hidden',
+  errorClass: 'popup__error_visible',
+  errorFormClass: 'popup__error_form',
+  popupContenSelector: '.popup__content',
+  popupContenFitClass: 'popup__content_fit'
+}
+// Настройки валидации
+const validationConfig = {
+  formSelector: '.popup__form',
+  inputSelector: '.popup__input',
+  submitButtonSelector: '.popup__button',
+  inactiveButtonClass: 'popup__button_disabled',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__error_visible'
+}
 
-Promise.all(promises)
-  .then((results) => {
-    const profileData = results[0];
-    const cards = results[1];
+// Функция получения данных профиля и карточек с сервера
+function getProfileAndCards() {
+  const promises = [getProfileData(), getInitialCards()];
 
-    renderLoading(content, spinner, true);
+  Promise.all(promises)
+    .then((results) => {
+      const profileData = results[0];
+      const cards = results[1];
 
-    // Выводим полученные данные пользователя
-    avatar.style.backgroundImage = `url(${profileData.avatar})`;
-    name.textContent = profileData.name;
-    job.textContent = profileData.about;
-    profileId = profileData['_id'];
+      renderLoading(content, spinner, true);
 
-    // Выводим полученные карточки
-    cards.forEach((card) => {
-      cardElements.append(createCard({
-        profileId: profileId,
-        cardOwnerId: card.owner['_id'],
-        cardId: card['_id'],
-        cardName: card.name,
-        cardLink: card.link,
-        deleteFromMarkup: deleteCard,
-        togglelikeInMarkup: cardLike,
-        putLikeOnServer: putLike,
-        deleteLikeFromServer: deleteLike,
-        likesArray: card.likes,
-        openFunction: openPopup,
-        deleteFromServer: deleteNewCard,
-        popupDelete: popupDelete,
-        formDelete: formDelete,
-        hideFormError: hideFormError,
-        hideConfigObject: {
-          formHiddenClass: 'popup__form_hidden',
-          errorClass: 'popup__error_visible',
-          errorFormClass: 'popup__error_form',
-          popupContenSelector: '.popup__content',
-          popupContenFitClass: 'popup__content_fit'
-        },
-        changeButtonLabel: changeButtonLabel,
-        clearValidation: clearValidation,
-        validationConfig: {
-          formSelector: '.popup__form',
-          inputSelector: '.popup__input',
-          submitButtonSelector: '.popup__button',
-          inactiveButtonClass: 'popup__button_disabled',
-          inputErrorClass: 'popup__input_type_error',
-          errorClass: 'popup__error_visible'
-        }
-      }));
+      // Выводим полученные данные пользователя
+      avatar.style.backgroundImage = `url(${profileData.avatar})`;
+      name.textContent = profileData.name;
+      job.textContent = profileData.about;
+      profileId = profileData['_id'];
+
+      // Выводим полученные карточки
+      cards.forEach((card) => {
+        cardElements.append(createCard(
+          profileId,
+          {
+            cardOwnerId: card.owner['_id'],
+            cardId: card['_id'],
+            cardName: card.name,
+            cardLink: card.link,
+            likesArray: card.likes
+          },
+          {
+            deleteFromMarkup: deleteCard,
+            toggleLikeInMarkup: cardLike
+          },
+          {
+            handleCardDeleteClick: handleCardDeleteClick,
+            handleCardLikeClick: handleCardLikeClick,
+            handleCardImageClick: handleCardImageClick
+          }
+        ));
+      })
     })
-  })
-  .catch((err) => console.log(err))
-  .finally(() => renderLoading(content, spinner, false));
+    .catch(err => {
+      changeButtonLabel(formError, 'Попробовать еще раз');
+      openPopup(popupError);
+      showFormError(formError, err, formDisplayConfig)
+    })
+    .finally(() => renderLoading(content, spinner, false));
+}
 
 // Обработчик отправки формы редактирования профиля
 function handleFormEditSubmit(evt) {
@@ -114,13 +127,7 @@ function handleFormEditSubmit(evt) {
         changeButtonLabel(evt.target, 'Сохранить');
       })
       .catch(err => {
-        showFormError(evt.target, err, {
-          formHiddenClass: 'popup__form_hidden',
-          errorClass: 'popup__error_visible',
-          errorFormClass: 'popup__error_form',
-          popupContenSelector: '.popup__content',
-          popupContenFitClass: 'popup__content_fit'
-        })
+        showFormError(evt.target, err, formDisplayConfig)
         changeButtonLabel(evt.target, 'OK');
       })
   }
@@ -137,52 +144,31 @@ function handleFormNewSubmit(evt) {
     changeButtonLabel(evt.target, 'Сохранение...');
     addNewCard(placeInput.value, linkInput.value)
       .then(newCardData => {
-        cardElements.prepend(createCard({
-          profileId: profileId,
-          cardOwnerId: newCardData.owner['_id'],
-          cardId: newCardData['_id'],
-          cardName: newCardData.name,
-          cardLink: newCardData.link,
-          deleteFromMarkup: deleteCard,
-          togglelikeInMarkup: cardLike,
-          putLikeOnServer: putLike,
-          deleteLikeFromServer: deleteLike,
-          likesArray: newCardData.likes,
-          openFunction: openPopup,
-          deleteFromServer: deleteNewCard,
-          popupDelete: popupDelete,
-          formDelete: formDelete,
-          hideFormError: hideFormError,
-          hideConfigObject: {
-            formHiddenClass: 'popup__form_hidden',
-            errorClass: 'popup__error_visible',
-            errorFormClass: 'popup__error_form',
-            popupContenSelector: '.popup__content',
-            popupContenFitClass: 'popup__content_fit'
+        cardElements.prepend(createCard(
+          profileId,
+          {
+            cardOwnerId: newCardData.owner['_id'],
+            cardId: newCardData['_id'],
+            cardName: newCardData.name,
+            cardLink: newCardData.link,
+            likesArray: newCardData.likes
           },
-          changeButtonLabel: changeButtonLabel,
-          clearValidation: clearValidation,
-          validationConfig: {
-            formSelector: '.popup__form',
-            inputSelector: '.popup__input',
-            submitButtonSelector: '.popup__button',
-            inactiveButtonClass: 'popup__button_disabled',
-            inputErrorClass: 'popup__input_type_error',
-            errorClass: 'popup__error_visible'
+          {
+            deleteFromMarkup: deleteCard,
+            toggleLikeInMarkup: cardLike
+          },
+          {
+            handleCardDeleteClick: handleCardDeleteClick,
+            handleCardLikeClick: handleCardLikeClick,
+            handleCardImageClick: handleCardImageClick
           }
-        }))
+        ));
         formNew.reset();
         closePopup(evt.type);
         changeButtonLabel(evt.target, 'Сохранить');
       })
       .catch(err => {
-        showFormError(evt.target, err, {
-          formHiddenClass: 'popup__form_hidden',
-          errorClass: 'popup__error_visible',
-          errorFormClass: 'popup__error_form',
-          popupContenSelector: '.popup__content',
-          popupContenFitClass: 'popup__content_fit'
-        })
+        showFormError(evt.target, err, formDisplayConfig)
         changeButtonLabel(evt.target, 'OK');
       })
   }
@@ -209,26 +195,16 @@ function handleFormEditAvatarSubmit(evt) {
               changeButtonLabel(evt.target, 'Сохранить');
             })
             .catch(err => {
-              showFormError(evt.target, err, {
-                formHiddenClass: 'popup__form_hidden',
-                errorClass: 'popup__error_visible',
-                errorFormClass: 'popup__error_form',
-                popupContenSelector: '.popup__content',
-                popupContenFitClass: 'popup__content_fit'
-              })
+              showFormError(evt.target, err, formDisplayConfig)
               changeButtonLabel(evt.target, 'OK');
             })
-          changeButtonLabel(evt.target, 'Сохранить');
+        } else {
+          showFormError(evt.target, 'Переданная ссылка не содержит изображение.', formDisplayConfig)
+          changeButtonLabel(evt.target, 'OK');
         }
       })
       .catch(err => {
-        showFormError(evt.target, err, {
-          formHiddenClass: 'popup__form_hidden',
-          errorClass: 'popup__error_visible',
-          errorFormClass: 'popup__error_form',
-          popupContenSelector: '.popup__content',
-          popupContenFitClass: 'popup__content_fit'
-        })
+        showFormError(evt.target, err, formDisplayConfig)
         changeButtonLabel(evt.target, 'OK');
       })
   }
@@ -252,17 +228,107 @@ function handleFormConfirmDelete(evt) {
         changeButtonLabel(evt.target, 'Да');
       })
       .catch(err => {
-        showFormError(evt.target, err, {
-          formHiddenClass: 'popup__form_hidden',
-          errorClass: 'popup__error_visible',
-          errorFormClass: 'popup__error_form',
-          popupContenSelector: '.popup__content',
-          popupContenFitClass: 'popup__content_fit'
-        })
+        showFormError(evt.target, err, formDisplayConfig)
         changeButtonLabel(evt.target, 'OK');
       })
   }
 }
+
+// Обработчик отправки формы ошибки
+function handleFormError(evt) {
+  evt.preventDefault();
+
+  changeButtonLabel(evt.target, 'Обработка...');
+  if (!profileId) {
+    getProfileAndCards();
+  }
+
+  if (evt.target.dataset.actionType === 'put-like') {
+    putLike(evt.target.dataset.cardId)
+      .then(() => {
+        closePopup(popupError);
+        evt.target.dataset.cardId = '';
+        evt.target.dataset.actionType = '';
+        changeButtonLabel(evt.target, 'OK');
+      })
+      .catch(err => {
+        showFormError(evt.target, err, formDisplayConfig)
+        changeButtonLabel(evt.target, 'Попробовать еще раз');
+      });
+  }
+
+  if (evt.target.dataset.actionType === 'delete-like') {
+    deleteLike(evt.target.dataset.cardId)
+      .then(() => {
+        closePopup(popupError);
+        changeButtonLabel(evt.target, 'OK');
+      })
+      .catch(err => {
+        showFormError(evt.target, err, formDisplayConfig)
+        changeButtonLabel(evt.target, 'Попробовать еще раз');
+      });
+  }
+}
+
+// Обработчик клика на кнопку удаления карточки
+function handleCardDeleteClick(cardId) {
+  // Ищем зону контента попапа
+  const popupContentZone = popupDelete.querySelector(formDisplayConfig.popupContenSelector);
+
+  openPopup(popupDelete);
+  formDelete.dataset.cardId = `${cardId}`;
+  if (formDelete.classList.contains(formDisplayConfig.formHiddenClass)) {
+    hideFormError(formDelete, formDisplayConfig);
+    changeButtonLabel(formDelete, 'Да');
+    clearValidation(formDelete, validationConfig);
+  } else {
+    clearValidation(formDelete, validationConfig);
+  }
+  popupContentZone.classList.add(formDisplayConfig.popupContenFitClass);
+}
+
+// Обработчик клика на кнопку лайка карточки
+function handleCardLikeClick(evt, cardId, toggleLikeInMarkup, likeButton, likesElement) {
+  formError.dataset.cardId = `${cardId}`;
+  hideFormError(formError, formDisplayConfig);
+  changeButtonLabel(formError, 'OK');
+
+  if (evt.target.classList.contains('card__like-button_is-active')) {
+    formError.dataset.actionType = 'delete-like';
+    deleteLike(cardId)
+      .then(res => {
+        toggleLikeInMarkup(likeButton, likesElement, res.likes.length);
+      })
+      .catch(err => {
+        openPopup(popupError);
+        showFormError(formError, err, formDisplayConfig);
+      })
+  } else {
+    formError.dataset.actionType = 'put-like';
+    putLike(cardId)
+      .then(res => {
+        toggleLikeInMarkup(likeButton, likesElement, res.likes.length);
+      })
+      .catch(err => {
+        openPopup(popupError);
+        showFormError(formError, err, formDisplayConfig);
+      })
+  }
+}
+
+// Обработчик клика на картинку карточки
+function handleCardImageClick(cardName, cardLink) {
+  const cardOpenedImg = popupImage.querySelector('.popup__image');
+  const cardOpenedCaption = popupImage.querySelector('.popup__caption');
+  
+  cardOpenedImg.src = cardLink;
+  cardOpenedImg.alt = cardName;
+  cardOpenedCaption.textContent = cardName;
+  openPopup(popupImage);
+}
+
+// Получить данные с сервера
+getProfileAndCards();
 
 // Повесить на попапы класс для анимации
 popups.forEach((popup) => makePopupAnimated(popup));
@@ -272,31 +338,11 @@ avatar.addEventListener('click', () => {
   formEditAvatar.reset();
   openPopup(popupEditAvatar);
   if (formEditAvatar.classList.contains('popup__form_hidden')) {
-    hideFormError(formEditAvatar, {
-      formHiddenClass: 'popup__form_hidden',
-      errorClass: 'popup__error_visible',
-      errorFormClass: 'popup__error_form',
-      popupContenSelector: '.popup__content',
-      popupContenFitClass: 'popup__content_fit'
-    });
+    hideFormError(formEditAvatar, formDisplayConfig);
     changeButtonLabel(formEditAvatar, 'Сохранить');
-    clearValidation(formEditAvatar, {
-      formSelector: '.popup__form',
-      inputSelector: '.popup__input',
-      submitButtonSelector: '.popup__button',
-      inactiveButtonClass: 'popup__button_disabled',
-      inputErrorClass: 'popup__input_type_error',
-      errorClass: 'popup__error_visible'
-    });
+    clearValidation(formEditAvatar, validationConfig);
   } else {
-    clearValidation(formEditAvatar, {
-      formSelector: '.popup__form',
-      inputSelector: '.popup__input',
-      submitButtonSelector: '.popup__button',
-      inactiveButtonClass: 'popup__button_disabled',
-      inputErrorClass: 'popup__input_type_error',
-      errorClass: 'popup__error_visible'
-    });
+    clearValidation(formEditAvatar, validationConfig);
   }
 })
 
@@ -306,23 +352,10 @@ buttonEdit.addEventListener('click', () => {
   jobInput.value = job.textContent;
   openPopup(popupEdit);
   if (formEdit.classList.contains('popup__form_hidden')) {
-    hideFormError(formEdit, {
-      formHiddenClass: 'popup__form_hidden',
-      errorClass: 'popup__error_visible',
-      errorFormClass: 'popup__error_form',
-      popupContenSelector: '.popup__content',
-      popupContenFitClass: 'popup__content_fit'
-    });
+    hideFormError(formEdit, formDisplayConfig);
     changeButtonLabel(formEdit, 'Сохранить');
   } else {
-    clearValidation(formEdit, {
-      formSelector: '.popup__form',
-      inputSelector: '.popup__input',
-      submitButtonSelector: '.popup__button',
-      inactiveButtonClass: 'popup__button_disabled',
-      inputErrorClass: 'popup__input_type_error',
-      errorClass: 'popup__error_visible'
-    });
+    clearValidation(formEdit, validationConfig);
   }
 });
 
@@ -331,31 +364,11 @@ buttonNew.addEventListener('click', () => {
   formNew.reset();
   openPopup(popupNew);
   if (formNew.classList.contains('popup__form_hidden')) {
-    hideFormError(formNew, {
-      formHiddenClass: 'popup__form_hidden',
-      errorClass: 'popup__error_visible',
-      errorFormClass: 'popup__error_form',
-      popupContenSelector: '.popup__content',
-      popupContenFitClass: 'popup__content_fit'
-    });
+    hideFormError(formNew, formDisplayConfig);
     changeButtonLabel(formNew, 'Сохранить');
-    clearValidation(formNew, {
-      formSelector: '.popup__form',
-      inputSelector: '.popup__input',
-      submitButtonSelector: '.popup__button',
-      inactiveButtonClass: 'popup__button_disabled',
-      inputErrorClass: 'popup__input_type_error',
-      errorClass: 'popup__error_visible'
-    });
+    clearValidation(formNew, validationConfig);
   } else {
-    clearValidation(formNew, {
-      formSelector: '.popup__form',
-      inputSelector: '.popup__input',
-      submitButtonSelector: '.popup__button',
-      inactiveButtonClass: 'popup__button_disabled',
-      inputErrorClass: 'popup__input_type_error',
-      errorClass: 'popup__error_visible'
-    });
+    clearValidation(formNew, validationConfig);
   }
 });
 
@@ -371,13 +384,8 @@ formEditAvatar.addEventListener('submit', handleFormEditAvatarSubmit);
 // Повесить слушателя отправки формы удаления карточки
 formDelete.addEventListener('submit', handleFormConfirmDelete);
 
-// Включить валидацию
-enableValidation({
-  formSelector: '.popup__form',
-  inputSelector: '.popup__input',
-  submitButtonSelector: '.popup__button',
-  inactiveButtonClass: 'popup__button_disabled',
-  inputErrorClass: 'popup__input_type_error',
-  errorClass: 'popup__error_visible'
-});
+// Повесить слушателя отправки формы ошибки
+formError.addEventListener('submit', handleFormError);
 
+// Включить валидацию
+enableValidation(validationConfig);

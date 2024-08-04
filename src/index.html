@@ -56,7 +56,9 @@
           placeholder="Занятие"
           required
           minlength="2"
-          maxlength="200">
+          maxlength="200"
+          pattern="^[a-zA-Zа-яА-яёЁ\-\s]+$"
+          data-error-message="Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы">
         <span class="popup__error description-error"></span>
         <span class="popup__error edit-profile-error"></span>
         <button type="submit" class="button popup__button">Сохранить</button>
@@ -112,6 +114,16 @@
         <span class="popup__error avatar-error"></span>
         <span class="popup__error avatar-form-error"></span>
         <button type="submit" class="button popup__button">Сохранить</button>
+      </form>
+    </div>
+  </div>
+  <div class="popup popup_type_error">
+    <div class="popup__content popup__content_fit">
+      <button type="button" class="popup__close"></button>
+      <h3 class="popup__title">Произошла ошибка</h3>
+      <form id="error-form" class="popup__form" data-card-id="" data-action-type="">
+        <span class="popup__error error-form-error"></span>
+        <button type="submit" class="button popup__button">OK</button>
       </form>
     </div>
   </div>

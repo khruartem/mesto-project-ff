@@ -60,25 +60,6 @@ function showInputError(formElement, inputElement, errorMessage, validationConfi
   errorElement.classList.add(validationConfig.errorClass);
 }
 
-function showFormError(formElement, errorMessage, validationConfig) {
-  const errorElement = formElement.querySelector(`.${formElement.id}-error`);
-  const popupContentElement = formElement.closest(validationConfig.popupContenSelector);
-  
-  formElement.classList.add(validationConfig.formHiddenClass);
-  popupContentElement.classList.add(validationConfig.popupContenFitClass);
-  errorElement.textContent = errorMessage;
-  errorElement.classList.add(validationConfig.errorClass, validationConfig.errorFormClass);
-}
-
-function hideFormError(formElement, validationConfig) {
-  const errorElement = formElement.querySelector(`.${formElement.id}-error`);
-  const popupContentElement = formElement.closest(validationConfig.popupContenSelector);
-  
-  formElement.classList.remove(validationConfig.formHiddenClass);
-  popupContentElement.classList.remove(validationConfig.popupContenFitClass);
-  errorElement.classList.remove(validationConfig.errorClass, validationConfig.errorFormClass);
-}
-
 function hideInputError(formElement, inputElement, validationConfig) {
   const errorElement = formElement.querySelector(`.${inputElement.name}-error`);
 
@@ -98,6 +79,6 @@ function clearValidation(formElement, validationConfig) {
   toggleButtonState(inputList, buttonElement, validationConfig);
 }
 
-export { enableValidation, clearValidation, showFormError, hideFormError };
+export { enableValidation, clearValidation };
 
 
