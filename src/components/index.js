@@ -315,7 +315,7 @@ function handleCardImageClick(cardName, cardLink) {
 // Получить данные с сервера
 getProfileAndCards();
 
-// Повесить на попапы класс для анимации
+// Повесить на попапы класс для анимации при плавном открытии/закрытии
 popups.forEach((popup) => makePopupAnimated(popup));
 
 // Повесить слушателей клика на аватар
